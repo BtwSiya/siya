@@ -31,6 +31,7 @@ async def start(_, message: types.Message):
     )
 
     key = buttons.start_key(message.lang, private)
+    await message.reply_sticker("CAACAgUAAxkBAAONaUbqrD_uzkyWB1Qe5szf8HjrWHoAAtoOAAIBpeBXwLT496f35J4eBA")
     await message.reply_text(
         text=_text,
         reply_markup=key,
