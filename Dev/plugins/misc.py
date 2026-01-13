@@ -68,32 +68,37 @@ async def update_timer(length=10):
                 pos = min(int((played / duration) * length), length - 1)
                 timer = "—" * pos + "◉" + "—" * (length - pos - 1)
 
-                if remaining <= 30:
+                 if remaining <= 30:
                     next = queue.get_next(chat_id, check=True)
                     if next and not next.file_path:
                         next.file_path = await yt.download(next.id, video=next.video)
 
+                # 🔁 LOOP / NEXT LOGIC (FIXED INDENTATION)
                 if remaining < 1:
-    loop_count = await get_loop(chat_id)
+                    loop_count = await get_loop(chat_id)
 
-    if loop_count > 0:
-        current = queue.get_current(chat_id)
-        if current:
-            current.time = 0
-            await set_loop(chat_id, loop_count - 1)
+                    if loop_count > 0:
+                        current = queue.get_current(chat_id)
+                        if current:
+                            current.time = 0
+                            await set_loop(chat_id, loop_count - 1)
 
-            await unnati.play_media(
-                chat_id=chat_id,
-                message=None,
-                media=current,
-            )
-            continue
+                            await unnati.play_media(
+                                chat_id=chat_id,
+                                message=None,
+                                media=current,
+                            )
+                            continue
 
-    await unnati.play_next(chat_id)
-    continue
+                    await unnati.play_next(chat_id)
+                    continue
 
-remove = False
-timer = f"{time.strftime('%M:%S', time.gmtime(played))} | {timer} | -{time.strftime('%M:%S', time.gmtime(remaining))}"
+                remove = False
+                timer = (
+                    f"{time.strftime('%M:%S', time.gmtime(played))}"
+                    f" | {timer} | -{time.strftime('%M:%S', time.gmtime(remaining))}"
+                )
+                
                 await app.edit_message_reply_markup(
                     chat_id=chat_id,
                     message_id=message_id,
@@ -103,6 +108,7 @@ timer = f"{time.strftime('%M:%S', time.gmtime(played))} | {timer} | -{time.strft
                 )
             except:
                 pass
+
 
 
 async def vc_watcher(sleep=15):
