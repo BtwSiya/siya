@@ -5,6 +5,8 @@ from pyrogram import enums, filters, types
 
 from Dev import unnati, app, config, db, lang, queue, tasks, userbot, yt
 from Dev.helpers import buttons
+from Dev.plugins.loop import get_loop, set_loop
+
 
 
 @app.on_message(filters.video_chat_started, group=19)
@@ -71,12 +73,27 @@ async def update_timer(length=10):
                     if next and not next.file_path:
                         next.file_path = await yt.download(next.id, video=next.video)
 
-                if remaining < 10:
-                    remove = True
-                else:
-                    remove = False
-                    timer = f"{time.strftime('%M:%S', time.gmtime(played))} | {timer} | -{time.strftime('%M:%S', time.gmtime(remaining))}"
+                if remaining < 1:
+    loop_count = await get_loop(chat_id)
 
+    if loop_count > 0:
+        current = queue.get_current(chat_id)
+        if current:
+            current.time = 0
+            await set_loop(chat_id, loop_count - 1)
+
+            await unnati.play_media(
+                chat_id=chat_id,
+                message=None,
+                media=current,
+            )
+            continue
+
+    await unnati.play_next(chat_id)
+    continue
+
+remove = False
+timer = f"{time.strftime('%M:%S', time.gmtime(played))} | {timer} | -{time.strftime('%M:%S', time.gmtime(remaining))}"
                 await app.edit_message_reply_markup(
                     chat_id=chat_id,
                     message_id=message_id,
