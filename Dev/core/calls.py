@@ -120,7 +120,7 @@ class TgCall(PyTgCalls):
         msg = await app.send_message(chat_id=chat_id, text=_lang["play_again"])
         await self.play_media(chat_id, msg, media)
 
-async def play_next(self, chat_id: int) -> None:
+    async def play_next(self, chat_id: int) -> None:
         if not await db.get_call(chat_id):
             return
 
