@@ -148,7 +148,7 @@ class Inline:
                 [
                     self.ikb(
                         text=lang["love"],
-                        url="https://t.me/igbug",
+                        url="https://t.me/TechBotss",
                     )
                 ]
             ]
