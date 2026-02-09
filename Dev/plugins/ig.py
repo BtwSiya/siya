@@ -29,8 +29,7 @@ async def fetch_cookies(url):
         logger.error(f"Cookie Error: {e}")
     return None
 
-# Instagram link detect karne wala filter
-@app.on_message(filters.regex(r"(https?:\/\/(?:www\.)?instagram\.com(?:\/[^\s]+)?)") & filters.incoming)
+@sex.on_message(filters.regex(r"(https?:\/\/(?:www\.)?instagram\.com(?:\/[^\s]+)?)") & filters.incoming)
 async def insta_pyro_handler(client: Client, message: Message):
     
     url = message.matches[0].group(0)
