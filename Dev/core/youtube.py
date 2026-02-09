@@ -93,12 +93,12 @@ class YouTube:
     async def download(self, video_id: str, video: bool = False) -> Optional[str]:
         url = self.base + video_id
         
-        # Fast existence check
+        # Check if file exists to return instantly
         if video:
             if Path(f"downloads/{video_id}.mp4").exists():
                 return f"downloads/{video_id}.mp4"
         else:
-            # Check all likely audio formats
+            # Check common audio formats
             for ext in ["m4a", "webm", "mp3", "opus"]:
                 if Path(f"downloads/{video_id}.{ext}").exists():
                     return f"downloads/{video_id}.{ext}"
@@ -110,12 +110,12 @@ class YouTube:
             "geo_bypass": True,
             "nocheckcertificate": True,
             "ignoreerrors": True,
-            # CRITICAL FIX: 'android_creator' is less strict on logins.
-            # 'web' is the fallback (browser mode) which rarely asks for login.
+            # FIXED: Removed 'skip' parameters. 
+            # Blocking dash/hls was forcing YouTube to demand login on your IP.
+            # Using 'android' client is safest for speed.
             "extractor_args": {
                 "youtube": {
-                    "player_client": ["android_creator", "web"],
-                    "skip": ["dash", "hls"],
+                    "player_client": ["android"],
                 }
             },
         }
@@ -123,14 +123,16 @@ class YouTube:
         if video:
             ydl_opts = {
                 **base_opts,
+                # Best video + Best audio (no specific extension forced to avoid merge errors)
                 "format": "bestvideo[height<=720]+bestaudio/best[height<=720]",
                 "merge_output_format": "mp4",
             }
         else:
             ydl_opts = {
                 **base_opts,
-                # Prioritize m4a (fastest, no conversion) -> then best available
-                "format": "bestaudio[ext=m4a]/bestaudio/best",
+                # FIXED: 'bestaudio/best' allows m4a, webm, or opus. 
+                # This prevents "Requested format not available" errors.
+                "format": "bestaudio/best",
             }
 
         def _download():
@@ -141,8 +143,8 @@ class YouTube:
                         return None
                     return ydl.prepare_filename(info)
                 except Exception as ex:
-                    logger.error(f"Download Failed: {ex}")
+                    logger.error(f"Download Error: {ex}")
                     return None
 
         return await asyncio.to_thread(_download)
-                
+        
