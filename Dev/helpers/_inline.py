@@ -38,6 +38,9 @@ class Inline:
                     self.ikb(text="‣‣I", callback_data=f"controls skip {chat_id}"),
                     self.ikb(text="▢", callback_data=f"controls stop {chat_id}"),
                 ]
+                [
+                    self.ikb(text=_lang["close"], callback_data="help close"),
+                ]
             )
         return self.ikm(keyboard)
 
@@ -52,7 +55,7 @@ class Inline:
                 ]
             ]
         else:
-            cbs = ["admins", "auth", "blist", "lang", "ping", "play", "queue", "stats", "sudo"]
+            cbs = ["admins", "auth", "blist", "lang", "ping", "play", "queue", "stats", "sudo", "Insta"]
             buttons = [
                 self.ikb(text=_lang[f"help_{i}"], callback_data=f"help {cb}")
                 for i, cb in enumerate(cbs)
@@ -148,7 +151,7 @@ class Inline:
                 [
                     self.ikb(
                         text=lang["love"],
-                        url="https://t.me/TechBotss",
+                        url="https://t.me/Toxic_bots",
                     )
                 ]
             ]
