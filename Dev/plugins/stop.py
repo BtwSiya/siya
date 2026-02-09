@@ -4,7 +4,7 @@ from Dev import unnati, app, db, lang
 from Dev.helpers import can_manage_vc
 
 
-@app.on_message(filters.command(["end", "bsdk"]) & filters.group & ~app.bl_users)
+@app.on_message(filters.command(["end", "bc"]) & filters.group & ~app.bl_users)
 @lang.language()
 @can_manage_vc
 async def _stop(_, m: types.Message):
