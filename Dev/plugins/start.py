@@ -30,8 +30,9 @@ async def start(_, message: types.Message):
         else message.lang["start_gp"].format(app.name)
     )
 
-        key = buttons.start_key(message.lang, private)
-        await message.reply_video(
+    # In lines ke aage se extra spaces hata diye gaye hain
+    key = buttons.start_key(message.lang, private)
+    await message.reply_video(
         video="https://files.catbox.moe/wqna1t.mp4",
         caption=_text,
         reply_markup=key,
@@ -39,7 +40,6 @@ async def start(_, message: types.Message):
         parse_mode=enums.ParseMode.HTML
     )
 
-        
     if private:
         if await db.is_user(message.from_user.id):
             return
@@ -50,6 +50,7 @@ async def start(_, message: types.Message):
             return
         await utils.send_log(message, True)
         await db.add_chat(message.chat.id)
+        
 
 
 @app.on_message(filters.command(["playmode", "settings"]) & filters.group & ~app.bl_users)
