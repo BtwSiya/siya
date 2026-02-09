@@ -93,13 +93,15 @@ class YouTube:
     async def download(self, video_id: str, video: bool = False) -> Optional[str]:
         url = self.base + video_id
         
-        # Check existing files blindly to save time
+        # Determine strict output filename to check existence
+        # This helps in instant return if file is already there
         if video:
-            if Path(f"downloads/{video_id}.mp4").exists():
-                return f"downloads/{video_id}.mp4"
+            filename = f"downloads/{video_id}.mp4"
+            if Path(filename).exists():
+                return filename
         else:
-            # Audio check order
-            for ext in ["m4a", "webm", "mp3"]:
+            # Check common audio formats
+            for ext in ["m4a", "webm", "mp3", "opus"]:
                 if Path(f"downloads/{video_id}.{ext}").exists():
                     return f"downloads/{video_id}.{ext}"
 
@@ -109,31 +111,30 @@ class YouTube:
             "noplaylist": True,
             "geo_bypass": True,
             "nocheckcertificate": True,
-            "ignoreerrors": True, # Prevents crash on minor errors
-            # BYPASS CONFIGURATION: Using iOS client to avoid "Sign in" error
+            "ignoreerrors": True,
+            "no_warnings": True,
+            # CRITICAL FIX: Use 'tv' client.
+            # TV clients rarely trigger "Sign in to confirm you are not a bot"
             "extractor_args": {
                 "youtube": {
-                    "player_client": ["ios"], 
+                    "player_client": ["tv"], 
                     "skip": ["dash", "hls"],
                 }
             },
-            # Spoofing User Agent
-            "http_headers": {
-                "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1"
-            }
         }
 
         if video:
             ydl_opts = {
                 **base_opts,
-                "format": "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720]",
+                "format": "bestvideo[height<=720]+bestaudio/best[height<=720]",
                 "merge_output_format": "mp4",
             }
         else:
             ydl_opts = {
                 **base_opts,
-                # Force m4a/aac for speed and compatibility, fallback to best available
-                "format": "bestaudio[ext=m4a]/bestaudio/best",
+                # 'bestaudio/best' is safest and fastest. 
+                # It usually grabs m4a or opus which plays instantly.
+                "format": "bestaudio/best",
             }
 
         def _download():
@@ -144,9 +145,7 @@ class YouTube:
                         return None
                     return ydl.prepare_filename(info)
                 except Exception as ex:
-                    # Log only critical errors, avoid spamming console
-                    logger.error(f"Download Error for {video_id}: {ex}")
+                    logger.error(f"Download Error: {ex}")
                     return None
 
         return await asyncio.to_thread(_download)
-        
