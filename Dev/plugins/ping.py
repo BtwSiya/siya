@@ -16,7 +16,7 @@ async def _ping(_, m: types.Message):
     latency = round((time.time() - start) * 1000, 2)
     await sent.edit_media(
         media=types.InputMediaPhoto(
-            media=config.PING_IMG,
+            media="https://ar-hosting.pages.dev/1770672280720.mp4",
             caption=m.lang["ping_pong"].format(
                 latency,
                 uptime,
