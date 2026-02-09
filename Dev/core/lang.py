@@ -5,18 +5,8 @@ from pathlib import Path
 from Dev import db, logger
 
 lang_codes = {
-    "ar": "Arabic",
-    "de": "German",
     "en": "English",
-    "es": "Spanish",
-    "fr": "French",
     "hi": "Hindi",
-    "ja": "Japanese",
-    "my": "Burmese",
-    "pa": "Punjabi",
-    "pt": "Portuguese",
-    "ru": "Russian",
-    "zh": "Chinese",
 }
 
 
