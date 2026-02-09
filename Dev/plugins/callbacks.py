@@ -92,7 +92,7 @@ async def _controls(_, query: types.CallbackQuery):
 
     try:
         if action in ["skip", "replay", "stop"]:
-            await query.message.reply_text(reply, quote=True)
+            await query.message.reply_text(reply, quote=False)
             await query.message.delete()
         else:
             mtext = re.sub(
@@ -115,57 +115,25 @@ async def _controls(_, query: types.CallbackQuery):
 @lang.language()
 async def _help(_, query: types.CallbackQuery):
     data = query.data.split()
-    
-    # Agar direct help data nahi hai to URL open karega
     if len(data) == 1:
         return await query.answer(url=f"https://t.me/{app.username}?start=help")
 
-    # Back button logic
     if data[1] == "back":
         return await query.edit_message_text(
-            text=query.lang["help_menu"], 
-            reply_markup=buttons.help_markup(query.lang)
+            text=query.lang["help_menu"], reply_markup=buttons.help_markup(query.lang)
         )
-
-    # --- CLOSE BUTTON LOGIC (Modified) ---
     elif data[1] == "close":
         try:
-            # Purana msg aur command delete karein
             await query.message.delete()
-            await query.message.reply_to_message.delete()
+            return await query.message.reply_to_message.delete()
         except:
             pass
-        
-        # --- Start Command Logic Copy ---
-        # Check karein ki chat Private hai ya Group (Same as start command)
-        private = query.message.chat.type == enums.ChatType.PRIVATE
-        
-        # Caption Text define karein
-        _text = (
-            query.lang["start_pm"].format(query.from_user.first_name, app.name)
-            if private
-            else query.lang["start_gp"].format(app.name)
-        )
 
-        # Buttons define karein
-        key = buttons.start_key(query.lang, private)
-
-        # Video Send karein (Kyunki aapka start command video bhejta hai)
-        return await app.send_video(
-            chat_id=query.message.chat.id,
-            video="https://files.catbox.moe/wqna1t.mp4",
-            caption=_text,
-            reply_markup=key,
-            parse_mode=enums.ParseMode.HTML
-        )
-    # -------------------------------------
-
-    # Specific Help Sections
     await query.edit_message_text(
         text=query.lang[f"help_{data[1]}"],
         reply_markup=buttons.help_markup(query.lang, True),
     )
-    
+
 
 @app.on_callback_query(filters.regex("settings") & ~app.bl_users)
 @lang.language()
@@ -178,7 +146,7 @@ async def _settings_cb(_, query: types.CallbackQuery):
 
     chat_id = query.message.chat.id
     _admin = await db.get_play_mode(chat_id)
-    _delete = await db.get_cmd_delete(chat_id) 
+    _delete = await db.get_cmd_delete(chat_id)
     _language = await db.get_lang(chat_id)
 
     if cmd[1] == "delete":
@@ -196,6 +164,3 @@ async def _settings_cb(_, query: types.CallbackQuery):
             chat_id,
         )
     )
-
-
-
