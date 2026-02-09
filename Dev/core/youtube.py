@@ -144,22 +144,12 @@ class YouTube:
         if video:
             ydl_opts = {
                 **base_opts,
-                "format": "bv*[height<=?720]/bv*+ba/best",
-                "postprocessors": [
-                    {"key": "FFmpegVideoConvertor", "preferedformat": "mp4"},
-                ],
+                "format": "bestvideo+bestaudio/best",
             }
         else:
             ydl_opts = {
                 **base_opts,
-                "format": "ba/best",
-                "postprocessors": [
-                    {
-                        "key": "FFmpegExtractAudio",
-                        "preferredcodec": "mp3",
-                        "preferredquality": "192",
-                    }
-                ],
+                "format": "bestaudio/best",
             }
 
         def _download():
