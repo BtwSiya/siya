@@ -6,6 +6,7 @@ import asyncio
 import aiohttp
 from pathlib import Path
 from typing import Optional, Union
+from glob import glob
 
 from pyrogram import enums, types
 from py_yt import Playlist, VideosSearch
@@ -116,19 +117,14 @@ class YouTube:
                     video=video,
                 )
                 tracks.append(track)
-        except:
-            pass
+        except Exception as e:
+            logger.error("Playlist error: %s", e)
         return tracks
 
     async def download(self, video_id: str, video: bool = False) -> Optional[str]:
         url = self.base + video_id
-        ext = "mp4" if video else "webm"
-        filename = f"downloads/{video_id}.{ext}"
-
-        if Path(filename).exists():
-            return filename
-
         cookie = self.get_cookies()
+
         base_opts = {
             "outtmpl": "downloads/%(id)s.%(ext)s",
             "quiet": True,
@@ -138,31 +134,56 @@ class YouTube:
             "overwrites": False,
             "nocheckcertificate": True,
             "cookiefile": cookie,
+            "prefer_ffmpeg": True,
+            "ffmpeg_location": "/usr/bin/ffmpeg",
+            "continuedl": True,
+            "retries": 5,
+            "merge_output_format": "mp4",
         }
 
         if video:
             ydl_opts = {
                 **base_opts,
                 "format": "bv*[height<=?720]/bv*+ba/best",
-                "merge_output_format": "mp4",
+                "postprocessors": [
+                    {"key": "FFmpegVideoConvertor", "preferedformat": "mp4"},
+                ],
             }
         else:
             ydl_opts = {
                 **base_opts,
                 "format": "ba/best",
+                "postprocessors": [
+                    {
+                        "key": "FFmpegExtractAudio",
+                        "preferredcodec": "mp3",
+                        "preferredquality": "192",
+                    }
+                ],
             }
 
         def _download():
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 try:
                     ydl.download([url])
-                except (yt_dlp.utils.DownloadError, yt_dlp.utils.ExtractorError):
-                    if cookie in self.cookies:
-                        self.cookies.remove(cookie)
-                    return None
                 except Exception as ex:
                     logger.error("Download failed: %s", ex)
                     return None
-            return filename
+
+            files = glob(f"downloads/{video_id}.*")
+
+            if not files:
+                logger.error("No output file found after download")
+                return None
+
+            for f in files:
+                try:
+                    if os.path.getsize(f) > 0:
+                        return f
+                except:
+                    continue
+
+            logger.error("All downloaded files are empty")
+            return None
 
         return await asyncio.to_thread(_download)
