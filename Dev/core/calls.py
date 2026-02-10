@@ -91,12 +91,10 @@ class TgCall(PyTgCalls):
                         reply_markup=keyboard,
                     )
                 except MessageIdInvalid:
-                    media.message_id = (await app.send_photo(
-                        chat_id=chat_id,
-                        photo=_thumb,
-                        caption=text,
-                        reply_markup=keyboard,
-                    )).id
+                    return
+                except Exception:
+                    pass
+
         except FileNotFoundError:
             await message.edit_text(_lang["error_no_file"].format(config.SUPPORT_CHAT))
             await self.play_next(chat_id)
