@@ -8,22 +8,22 @@ from Dev.helpers import Track
 
 class Thumbnail:
     def __init__(self):
-        # 1280x720 Canvas
         self.width = 1280
         self.height = 720
         self.fill = (255, 255, 255)
         self.secondary_fill = (200, 200, 200) 
-        
-        # फॉन्ट लोड करने की कोशिश, अगर नहीं मिले तो डिफ़ॉल्ट
+        self.accent_color = (0, 255, 127)
+
         try:
-            self.font_title = ImageFont.truetype("Dev/helpers/Raleway-Bold.ttf", 60)
-            self.font_artist = ImageFont.truetype("Dev/helpers/Inter-Light.ttf", 40)
-            self.font_small = ImageFont.truetype("Dev/helpers/Inter-Light.ttf", 25)
+            self.font_title = ImageFont.truetype("Dev/helpers/Poppins-Bold.ttf", 45)
+            self.font_artist = ImageFont.truetype("Dev/helpers/Poppins-Medium.ttf", 30)
+            self.font_small = ImageFont.truetype("Dev/helpers/Poppins-Light.ttf", 20)
+            self.font_logo = ImageFont.truetype("Dev/helpers/Poppins-ExtraBold.ttf", 40)
         except:
-            print("Warning: Custom fonts not found, using default.")
             self.font_title = ImageFont.load_default()
             self.font_artist = ImageFont.load_default()
             self.font_small = ImageFont.load_default()
+            self.font_logo = ImageFont.load_default()
 
     async def save_thumb(self, output_path: str, url: str) -> str:
         async with aiohttp.ClientSession() as session:
@@ -31,104 +31,98 @@ class Thumbnail:
                 open(output_path, "wb").write(await resp.read())
             return output_path
 
-    # प्लेयर के बटन (Play, Pause, Next) बनाने का फंक्शन
     def draw_player_icons(self, draw, center_x, center_y):
-        # Pause Icon (||)
-        draw.rounded_rectangle((center_x - 15, center_y - 25, center_x - 5, center_y + 25), radius=5, fill=self.fill)
-        draw.rounded_rectangle((center_x + 5, center_y - 25, center_x + 15, center_y + 25), radius=5, fill=self.fill)
+        draw.rounded_rectangle((center_x - 12, center_y - 20, center_x - 4, center_y + 20), radius=4, fill=self.fill)
+        draw.rounded_rectangle((center_x + 4, center_y - 20, center_x + 12, center_y + 20), radius=4, fill=self.fill)
 
-        # Previous Icon (<<)
-        prev_x = center_x - 100
-        draw.polygon([(prev_x, center_y), (prev_x + 25, center_y - 20), (prev_x + 25, center_y + 20)], fill=self.fill)
-        draw.polygon([(prev_x - 20, center_y), (prev_x + 5, center_y - 20), (prev_x + 5, center_y + 20)], fill=self.fill)
+        prev_x = center_x - 80
+        draw.polygon([(prev_x, center_y), (prev_x + 20, center_y - 15), (prev_x + 20, center_y + 15)], fill=self.fill)
+        draw.polygon([(prev_x - 15, center_y), (prev_x + 5, center_y - 15), (prev_x + 5, center_y + 15)], fill=self.fill)
 
-        # Next Icon (>>)
-        next_x = center_x + 100
-        draw.polygon([(next_x, center_y), (next_x - 25, center_y - 20), (next_x - 25, center_y + 20)], fill=self.fill)
-        draw.polygon([(next_x + 20, center_y), (next_x - 5, center_y - 20), (next_x - 5, center_y + 20)], fill=self.fill)
+        next_x = center_x + 80
+        draw.polygon([(next_x, center_y), (next_x - 20, center_y - 15), (next_x - 20, center_y + 15)], fill=self.fill)
+        draw.polygon([(next_x + 15, center_y), (next_x - 5, center_y - 15), (next_x - 5, center_y + 15)], fill=self.fill)
 
-        # Volume Icon
-        vol_x = center_x - 150
-        vol_y = center_y + 100
-        draw.polygon([(vol_x, vol_y), (vol_x + 10, vol_y - 10), (vol_x + 10, vol_y + 10)], fill=self.fill)
-        draw.rectangle((vol_x - 5, vol_y - 5, vol_x, vol_y + 5), fill=self.fill)
-        draw.line([(vol_x + 25, vol_y), (vol_x + 300, vol_y)], fill=self.fill, width=3)
-        draw.ellipse((vol_x + 200, vol_y - 6, vol_x + 212, vol_y + 6), fill=self.fill)
+        vol_x = center_x - 130
+        vol_y = center_y + 90
+        draw.polygon([(vol_x, vol_y), (vol_x + 8, vol_y - 8), (vol_x + 8, vol_y + 8)], fill=self.secondary_fill)
+        draw.rectangle((vol_x - 4, vol_y - 4, vol_x, vol_y + 4), fill=self.secondary_fill)
+        draw.line([(vol_x + 20, vol_y), (vol_x + 260, vol_y)], fill=(100, 100, 100), width=3)
+        draw.line([(vol_x + 20, vol_y), (vol_x + 180, vol_y)], fill=self.fill, width=3)
+        draw.ellipse((vol_x + 175, vol_y - 5, vol_x + 185, vol_y + 5), fill=self.fill)
         
-        # List Icon
-        list_x = center_x + 200
-        list_y = center_y + 100
-        draw.line([(list_x, list_y - 10), (list_x + 30, list_y - 10)], fill=self.fill, width=3)
-        draw.line([(list_x, list_y), (list_x + 30, list_y)], fill=self.fill, width=3)
-        draw.line([(list_x, list_y + 10), (list_x + 30, list_y + 10)], fill=self.fill, width=3)
+        list_x = center_x + 180
+        list_y = center_y + 90
+        draw.line([(list_x, list_y - 8), (list_x + 25, list_y - 8)], fill=self.secondary_fill, width=2)
+        draw.line([(list_x, list_y), (list_x + 25, list_y)], fill=self.secondary_fill, width=2)
+        draw.line([(list_x, list_y + 8), (list_x + 25, list_y + 8)], fill=self.secondary_fill, width=2)
 
     async def generate(self, song: Track) -> str:
         try:
-            # Cache directory check
             if not os.path.exists("cache"):
                 os.makedirs("cache")
 
             temp = f"cache/temp_{song.id}.jpg"
-            output = f"cache/{song.id}_v2.png" # नाम बदल दिया ताकि पुराना cache लोड न हो
+            output = f"cache/{song.id}_boosted.png"
             
-            # अगर पहले से फाइल है तो वही रिटर्न करें
             if os.path.exists(output):
                 return output
 
             await self.save_thumb(temp, song.thumbnail)
             
-            # --- Background Logic ---
             original = Image.open(temp).convert("RGBA")
+            
             background = original.resize((self.width, self.height), Image.Resampling.LANCZOS)
-            background = background.filter(ImageFilter.GaussianBlur(30))
-            background = ImageEnhance.Brightness(background).enhance(0.40) # थोड़ा डार्क
+            background = background.filter(ImageFilter.GaussianBlur(50))
+            background = ImageEnhance.Brightness(background).enhance(0.35) 
+            background = ImageEnhance.Contrast(background).enhance(1.2)
 
-            # --- Album Art (Left Side) ---
-            # Fallen Style: फोटो लेफ्ट में बड़ी होती है
-            art_size = (500, 500)
+            art_size = (480, 480)
             art = ImageOps.fit(original, art_size, method=Image.Resampling.LANCZOS, centering=(0.5, 0.5))
             
-            # गोल कोने (Rounded Corners)
+            shadow = Image.new("RGBA", (art_size[0] + 40, art_size[1] + 40), (0, 0, 0, 0))
+            shadow_draw = ImageDraw.Draw(shadow)
+            shadow_draw.rounded_rectangle((20, 20, art_size[0]+20, art_size[1]+20), radius=45, fill=(0, 0, 0, 120))
+            shadow = shadow.filter(ImageFilter.GaussianBlur(15))
+            background.paste(shadow, (80, 90), shadow)
+
             mask = Image.new("L", art_size, 0)
             draw_mask = ImageDraw.Draw(mask)
             draw_mask.rounded_rectangle((0, 0, art_size[0], art_size[1]), radius=40, fill=255)
             art.putalpha(mask)
             
-            # फोटो को लेफ्ट साइड (x=100, y=110) पर पेस्ट करें
             background.paste(art, (100, 110), art)
 
-            # --- Text & Controls (Right Side) ---
             draw = ImageDraw.Draw(background)
             
-            text_x = 650
+            text_x = 640
             center_control_x = text_x + (1280 - text_x) // 2 
 
-            # Title
-            title = song.title
-            if len(title) > 30:
-                title = title[:30] + "..."
-            draw.text((text_x, 180), title, font=self.font_title, fill=self.fill)
+            draw.text((1050, 50), "ToxicBots", font=self.font_logo, fill=self.accent_color)
             
-            # Artist / Channel Name
+            title = song.title
+            if len(title) > 35:
+                title = title[:35] + "..."
+            
+            shadow_offset = 2
+            draw.text((text_x + shadow_offset, 200 + shadow_offset), title, font=self.font_title, fill=(0,0,0))
+            draw.text((text_x, 200), title, font=self.font_title, fill=self.fill)
+            
             channel = song.channel_name
-            if len(channel) > 30:
-                channel = channel[:30] + "..."
-            draw.text((text_x, 260), channel, font=self.font_artist, fill=self.secondary_fill)
+            if len(channel) > 35:
+                channel = channel[:35] + "..."
+            draw.text((text_x, 270), channel, font=self.font_artist, fill=self.secondary_fill)
 
-            # Progress Bar
-            bar_y = 380
-            draw.line([(text_x, bar_y), (1200, bar_y)], fill=(100, 100, 100), width=5) # Gray Line
-            draw.line([(text_x, bar_y), (text_x + 220, bar_y)], fill=self.fill, width=5) # White Progress
-            draw.ellipse((text_x + 210, bar_y - 8, text_x + 230, bar_y + 8), fill=self.fill) # Dot
+            bar_y = 360
+            draw.line([(text_x, bar_y), (1200, bar_y)], fill=(80, 80, 80), width=4) 
+            draw.line([(text_x, bar_y), (text_x + 220, bar_y)], fill=self.accent_color, width=4)
+            draw.ellipse((text_x + 212, bar_y - 6, text_x + 228, bar_y + 6), fill=self.fill)
 
-            # Duration Times
-            draw.text((text_x, bar_y + 20), "0:00", font=self.font_small, fill=self.fill)
-            draw.text((1140, bar_y + 20), song.duration, font=self.font_small, fill=self.fill)
+            draw.text((text_x, bar_y + 15), "0:00", font=self.font_small, fill=self.secondary_fill)
+            draw.text((1150, bar_y + 15), song.duration, font=self.font_small, fill=self.secondary_fill)
 
-            # Controls Draw Karen
-            self.draw_player_icons(draw, center_control_x, 520)
+            self.draw_player_icons(draw, center_control_x, 500)
 
-            # Final Save
             background.save(output)
             if os.path.exists(temp):
                 os.remove(temp)
@@ -137,6 +131,5 @@ class Thumbnail:
             
         except Exception as e:
             print(f"Error generating thumbnail: {e}")
-            # अगर एरर आए तो कम से कम डिफॉल्ट न भेजें, कोशिश करें temp भेजने की
             return config.DEFAULT_THUMB
           
