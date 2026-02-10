@@ -8,22 +8,20 @@ from Dev.helpers import Track
 
 class Thumbnail:
     def __init__(self):
-        # कैनवास साइज (इसे मत छेड़ें)
         self.width = 1280
         self.height = 720
-        
-        # आपकी लैपटॉप वाली फोटो का नाम
         self.background_path = "Dev/helpers/bg.jpg" 
 
-        # कलर सेटिंग्स
-        self.text_color = (255, 255, 255) # White Text
-        self.brand_color = (200, 200, 200) # Light Grey for "Toxic Bots"
+        self.text_color = (255, 255, 255) # White
+        self.brand_color = (220, 220, 220) # Light Grey
 
-        # फॉन्ट्स लोड करना
+        # --- FONT SIZE FIX (Smaller) ---
         try:
-            self.font_title = ImageFont.truetype("Dev/helpers/Raleway-Bold.ttf", 50) # गाने का नाम
-            self.font_brand = ImageFont.truetype("Dev/helpers/Raleway-Bold.ttf", 35) # Toxic Bots
-            self.font_small = ImageFont.truetype("Dev/helpers/Inter-Light.ttf", 25) # टाइमर (अगर चाहिए)
+            # टाइटल का फॉन्ट छोटा किया (50 -> 38)
+            self.font_title = ImageFont.truetype("Dev/helpers/Raleway-Bold.ttf", 38)
+            # ब्रांड का फॉन्ट छोटा किया (35 -> 28)
+            self.font_brand = ImageFont.truetype("Dev/helpers/Raleway-Bold.ttf", 28)
+            self.font_small = ImageFont.truetype("Dev/helpers/Inter-Light.ttf", 20)
         except:
             self.font_title = ImageFont.load_default()
             self.font_brand = ImageFont.load_default()
@@ -37,82 +35,68 @@ class Thumbnail:
 
     async def generate(self, song: Track) -> str:
         try:
-            # कैश डायरेक्टरी चेक
             if not os.path.exists("cache"):
                 os.makedirs("cache")
 
             temp = f"cache/temp_{song.id}.jpg"
-            output = f"cache/{song.id}_final.png"
+            output = f"cache/{song.id}_final_v2.png"
 
-            # अगर थंबनेल पहले से बना है तो वही भेजें
             if os.path.exists(output):
                 return output
 
-            # गाने का थंबनेल डाउनलोड करें
             await self.save_thumb(temp, song.thumbnail)
             
-            # --- 1. बैकग्राउंड (लैपटॉप) सेट करें ---
+            # --- 1. Background ---
             if os.path.exists(self.background_path):
                 background = Image.open(self.background_path).convert("RGBA")
                 background = background.resize((self.width, self.height), Image.Resampling.LANCZOS)
             else:
-                # अगर background.jpg नहीं मिली तो ब्लैक स्क्रीन
                 background = Image.new("RGBA", (self.width, self.height), (20, 20, 20, 255))
 
-            # --- 2. लेफ्ट साइड: गाने की फोटो (Album Art) ---
+            # --- 2. Album Art (Left Side - Fixed Size & Position) ---
             original_art = Image.open(temp).convert("RGBA")
             
-            # फोटो को थोड़ा बड़ा और गोल कोनों वाला बनाएं
-            art_size = (420, 420) 
+            # SIZE FIX: 420px से घटाकर 320px कर दिया ताकि फ्रेम से बाहर न जाए
+            art_size = (320, 320) 
             art = ImageOps.fit(original_art, art_size, method=Image.Resampling.LANCZOS, centering=(0.5, 0.5))
             
-            # गोल कोने (Rounded Corners)
+            # Rounded Corners
             mask = Image.new("L", art_size, 0)
             draw_mask = ImageDraw.Draw(mask)
-            draw_mask.rounded_rectangle((0, 0, art_size[0], art_size[1]), radius=30, fill=255)
+            draw_mask.rounded_rectangle((0, 0, art_size[0], art_size[1]), radius=25, fill=255)
             art.putalpha(mask)
 
-            # फोटो को लेफ्ट साइड में पेस्ट करें (Coordinates: X=100, Y=150)
-            background.paste(art, (100, 150), art)
+            # POSITION FIX: X को 100 से बढ़ाकर 140 कर दिया ताकि लैपटॉप के किनारे से दूर रहे
+            # Y को 200 कर दिया ताकि वर्टीकली सेंटर में दिखे
+            background.paste(art, (140, 200), art)
 
-            # --- 3. राइट साइड: टेक्स्ट और ब्रांडिंग ---
+            # --- 3. Text (Right Side) ---
             draw = ImageDraw.Draw(background)
             
-            # ये Coordinates आपकी भेजी गई फोटो के हिसाब से सेट किए गए हैं
-            text_x = 600       # राइट साइड की शुरुआत
-            line_y = 300       # वो लाइन जो बैकग्राउंड में दिख रही है (लगभग)
+            # Coordinates for Right Side (Based on your photo 817.jpg)
+            # लाइन लगभग Y=300 पर है, इसलिए हम उसके हिसाब से टेक्स्ट सेट करेंगे
             
-            # A. गाने का नाम (लाइन के ऊपर)
+            text_start_x = 580 # टेक्स्ट यहाँ से शुरू होगा (लाइन की शुरुआत के पास)
+            line_y_position = 295 # फोटो में लाइन यहाँ दिख रही है
+
+            # A. Title (लाइन के ऊपर)
             title = song.title
-            if len(title) > 20:
-                title = title[:20] + "..."
+            if len(title) > 25:
+                title = title[:25] + "..."
             
-            # टेक्स्ट को थोड़ा ऊपर (Y = 230) ड्रा करें
-            draw.text((text_x + 20, line_y - 70), title, font=self.font_title, fill=self.text_color)
+            # Y=240 (लाइन से थोड़ा ऊपर)
+            draw.text((text_start_x, line_y_position - 55), title, font=self.font_title, fill=self.text_color)
 
             # B. Toxic Bots (लाइन के नीचे)
-            draw.text((text_x + 20, line_y + 30), "Toxic Bots", font=self.font_brand, fill=self.brand_color)
+            # Y=320 (लाइन के नीचे, लेकिन Play बटन से ऊपर)
+            draw.text((text_start_x, line_y_position + 25), "Toxic Bots", font=self.font_brand, fill=self.brand_color)
 
-            # C. डायनामिक प्रोग्रेस बार (ताकि लाइन "भरी हुई" दिखे)
-            # हम बैकग्राउंड वाली लाइन के ऊपर एक सफेद लाइन ड्रा करेंगे
-            bar_start_x = text_x
-            bar_end_x = 1100
-            
-            # लाइन की पोजीशन फोटो के हिसाब से (Y=305 लगभग)
-            draw.line([(bar_start_x, 305), (bar_end_x, 305)], fill=(80, 80, 80), width=6) # डार्क ग्रे बेस
-            
-            # वाइट प्रोग्रेस (मान लो 30% गाना चला है दिखाने के लिए)
-            draw.line([(bar_start_x, 305), (bar_start_x + 150, 305)], fill=(255, 255, 255), width=6)
-            draw.ellipse((bar_start_x + 140, 297, bar_start_x + 160, 313), fill=(255, 255, 255)) # Dot
+            # Note: मैंने draw.line वाला कोड हटा दिया है।
+            # अब सिर्फ "Toxic Bots" और Song Title दिखेगा, लाइन बैकग्राउंड वाली ही रहेगी।
 
-            # ड्यूरेशन टेक्स्ट (बार के नीचे)
-            draw.text((bar_start_x, 330), "0:00", font=self.font_small, fill=self.text_color)
-            draw.text((bar_end_x - 50, 330), song.duration, font=self.font_small, fill=self.text_color)
-
-            # फाइल सेव करें
+            # Save
             background.save(output)
             
-            # टेम्परेरी फाइल डिलीट करें
             if os.path.exists(temp):
                 os.remove(temp)
                 
