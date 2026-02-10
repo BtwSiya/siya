@@ -22,7 +22,7 @@ async def _controls(_, query: types.CallbackQuery):
     user = query.from_user.mention
 
     if not await db.get_call(chat_id):
-        return await query.answer(query.lang["not_playing"], show_alert=True)
+        return await query.answer(query.lang["not_playing"],)
 
     if action == "status":
         return await query.answer()
@@ -35,7 +35,7 @@ async def _controls(_, query: types.CallbackQuery):
     if action == "pause":
         if not await db.playing(chat_id):
             return await query.answer(
-                query.lang["play_already_paused"], show_alert=True
+                query.lang["play_already_paused"],
             )
         await unnati.pause(chat_id)
         if qaction:
@@ -47,7 +47,7 @@ async def _controls(_, query: types.CallbackQuery):
 
     elif action == "resume":
         if await db.playing(chat_id):
-            return await query.answer(query.lang["play_not_paused"], show_alert=True)
+            return await query.answer(query.lang["play_not_paused"], )
         await unnati.resume(chat_id)
         if qaction:
             return await query.edit_message_reply_markup(
