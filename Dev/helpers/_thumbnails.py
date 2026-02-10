@@ -5,7 +5,7 @@ from PIL import (
     Image, ImageDraw, ImageEnhance,
     ImageFilter, ImageFont, ImageOps
 )
-import lyricsgenius  # pip install lyricsgenius
+import lyricsgenius 
 
 from Dev import config
 from Dev.helpers import Track
@@ -13,7 +13,7 @@ from Dev.helpers import Track
 # ==========================================
 # ⚙️ CONFIGURATION (API KEY YAHAN DAALO)
 # ==========================================
-GENIUS_API_TOKEN = "YAHAN_APNA_GENIUS_TOKEN_PASTE_KARO"
+GENIUS_API_TOKEN = "f56PvHz_YPP03fyGVHfn2fgM0f5G_xwgmojUb7nEPnAGAgVBL1u-_XGEgu6poDxj"
 # Agar token nahi hai toh ise empty chhod do (""), fake lyrics chalengi.
 
 class Thumbnail:
