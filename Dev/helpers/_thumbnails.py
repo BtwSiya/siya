@@ -8,29 +8,26 @@ from Dev.helpers import Track
 
 class Thumbnail:
     def __init__(self):
-        # ये आपके "Music Player" (Screen) की साइज है
+        # कैनवास साइज (इसे मत छेड़ें)
         self.width = 1280
         self.height = 720
         
-        # लैपटॉप इमेज का नाम (आपको ये फोटो अपने फोल्डर में रखनी होगी)
-        self.laptop_bg_path = "laptop.jpg" 
-        
-        self.fill = (255, 255, 255)
-        self.secondary_fill = (200, 200, 200) 
+        # आपकी लैपटॉप वाली फोटो का नाम
+        self.background_path = "Dev/helpers/bg.jpg" 
 
-        # Fonts setup
+        # कलर सेटिंग्स
+        self.text_color = (255, 255, 255) # White Text
+        self.brand_color = (200, 200, 200) # Light Grey for "Toxic Bots"
+
+        # फॉन्ट्स लोड करना
         try:
-            # बड़े फोंट्स ताकि लैपटॉप स्क्रीन पर साफ़ दिखें
-            self.font_title = ImageFont.truetype("Dev/helpers/Raleway-Bold.ttf", 55)
-            self.font_artist = ImageFont.truetype("Dev/helpers/Inter-Light.ttf", 35)
-            self.font_small = ImageFont.truetype("Dev/helpers/Inter-Light.ttf", 25)
-            # "Toxic Bots" ब्रांडिंग के लिए स्टाइलिश फोंट
-            self.font_brand = ImageFont.truetype("Dev/helpers/Raleway-Bold.ttf", 40)
+            self.font_title = ImageFont.truetype("Dev/helpers/Raleway-Bold.ttf", 50) # गाने का नाम
+            self.font_brand = ImageFont.truetype("Dev/helpers/Raleway-Bold.ttf", 35) # Toxic Bots
+            self.font_small = ImageFont.truetype("Dev/helpers/Inter-Light.ttf", 25) # टाइमर (अगर चाहिए)
         except:
             self.font_title = ImageFont.load_default()
-            self.font_artist = ImageFont.load_default()
-            self.font_small = ImageFont.load_default()
             self.font_brand = ImageFont.load_default()
+            self.font_small = ImageFont.load_default()
 
     async def save_thumb(self, output_path: str, url: str) -> str:
         async with aiohttp.ClientSession() as session:
@@ -38,125 +35,84 @@ class Thumbnail:
                 open(output_path, "wb").write(await resp.read())
             return output_path
 
-    # आइकन्स ड्रा करने का फंक्शन (Play, Pause etc)
-    def draw_player_icons(self, draw, start_x, center_y):
-        # यहाँ start_x वो पॉइंट है जहाँ से बटन शुरू होंगे (Right Side)
-        
-        # Previous (<<)
-        prev_x = start_x
-        draw.polygon([(prev_x, center_y), (prev_x + 20, center_y - 15), (prev_x + 20, center_y + 15)], fill=self.fill)
-        draw.polygon([(prev_x + 20, center_y), (prev_x + 40, center_y - 15), (prev_x + 40, center_y + 15)], fill=self.fill)
-
-        # Pause (||) - Center Main Button
-        pause_x = start_x + 80
-        draw.rounded_rectangle((pause_x, center_y - 25, pause_x + 10, center_y + 25), radius=3, fill=self.fill)
-        draw.rounded_rectangle((pause_x + 20, center_y - 25, pause_x + 30, center_y + 25), radius=3, fill=self.fill)
-
-        # Next (>>)
-        next_x = start_x + 150
-        draw.polygon([(next_x + 20, center_y), (next_x, center_y - 15), (next_x, center_y + 15)], fill=self.fill)
-        draw.polygon([(next_x + 40, center_y), (next_x + 20, center_y - 15), (next_x + 20, center_y + 15)], fill=self.fill)
-
     async def generate(self, song: Track) -> str:
         try:
+            # कैश डायरेक्टरी चेक
             if not os.path.exists("cache"):
                 os.makedirs("cache")
 
             temp = f"cache/temp_{song.id}.jpg"
-            output = f"cache/{song.id}_laptop.png"
+            output = f"cache/{song.id}_final.png"
 
+            # अगर थंबनेल पहले से बना है तो वही भेजें
             if os.path.exists(output):
                 return output
 
+            # गाने का थंबनेल डाउनलोड करें
             await self.save_thumb(temp, song.thumbnail)
             
-            # --- STEP 1: UI बनाना (जो स्क्रीन के अंदर दिखेगा) ---
-            original = Image.open(temp).convert("RGBA")
-            
-            # Background Blur Effect
-            screen = original.resize((self.width, self.height), Image.Resampling.LANCZOS)
-            screen = screen.filter(ImageFilter.GaussianBlur(20))
-            screen = ImageEnhance.Brightness(screen).enhance(0.5) # Dark Background
+            # --- 1. बैकग्राउंड (लैपटॉप) सेट करें ---
+            if os.path.exists(self.background_path):
+                background = Image.open(self.background_path).convert("RGBA")
+                background = background.resize((self.width, self.height), Image.Resampling.LANCZOS)
+            else:
+                # अगर background.jpg नहीं मिली तो ब्लैक स्क्रीन
+                background = Image.new("RGBA", (self.width, self.height), (20, 20, 20, 255))
 
-            draw = ImageDraw.Draw(screen)
-
-            # 1. Album Art (Left Side - Big & Rounded)
-            art_size = (450, 450)
-            art = ImageOps.fit(original, art_size, method=Image.Resampling.LANCZOS, centering=(0.5, 0.5))
+            # --- 2. लेफ्ट साइड: गाने की फोटो (Album Art) ---
+            original_art = Image.open(temp).convert("RGBA")
             
-            # Rounded Corners Mask
+            # फोटो को थोड़ा बड़ा और गोल कोनों वाला बनाएं
+            art_size = (420, 420) 
+            art = ImageOps.fit(original_art, art_size, method=Image.Resampling.LANCZOS, centering=(0.5, 0.5))
+            
+            # गोल कोने (Rounded Corners)
             mask = Image.new("L", art_size, 0)
             draw_mask = ImageDraw.Draw(mask)
             draw_mask.rounded_rectangle((0, 0, art_size[0], art_size[1]), radius=30, fill=255)
             art.putalpha(mask)
-            
-            # Paste Album Art (Left side padding: 80)
-            screen.paste(art, (80, 135), art)
 
-            # 2. Text Info (Right Side)
-            text_x = 600
+            # फोटो को लेफ्ट साइड में पेस्ट करें (Coordinates: X=100, Y=150)
+            background.paste(art, (100, 150), art)
+
+            # --- 3. राइट साइड: टेक्स्ट और ब्रांडिंग ---
+            draw = ImageDraw.Draw(background)
             
-            # "Toxic Bots" Branding (Top Left of Text area - like 'Noor' in reference)
-            draw.text((text_x, 150), "TOXIC BOTS", font=self.font_brand, fill=(255, 20, 147)) # Deep Pink color branding
+            # ये Coordinates आपकी भेजी गई फोटो के हिसाब से सेट किए गए हैं
+            text_x = 600       # राइट साइड की शुरुआत
+            line_y = 300       # वो लाइन जो बैकग्राउंड में दिख रही है (लगभग)
             
-            # Song Title
+            # A. गाने का नाम (लाइन के ऊपर)
             title = song.title
-            if len(title) > 25:
-                title = title[:25] + "..."
-            draw.text((text_x, 220), title, font=self.font_title, fill=self.fill)
+            if len(title) > 20:
+                title = title[:20] + "..."
             
-            # Artist Name
-            channel = song.channel_name
-            if len(channel) > 30:
-                channel = channel[:30] + "..."
-            draw.text((text_x, 290), channel, font=self.font_artist, fill=self.secondary_fill)
+            # टेक्स्ट को थोड़ा ऊपर (Y = 230) ड्रा करें
+            draw.text((text_x + 20, line_y - 70), title, font=self.font_title, fill=self.text_color)
 
-            # 3. Progress Bar
+            # B. Toxic Bots (लाइन के नीचे)
+            draw.text((text_x + 20, line_y + 30), "Toxic Bots", font=self.font_brand, fill=self.brand_color)
+
+            # C. डायनामिक प्रोग्रेस बार (ताकि लाइन "भरी हुई" दिखे)
+            # हम बैकग्राउंड वाली लाइन के ऊपर एक सफेद लाइन ड्रा करेंगे
             bar_start_x = text_x
-            bar_y = 400
-            draw.line([(bar_start_x, bar_y), (1150, bar_y)], fill=(100, 100, 100), width=6) # Grey path
-            draw.line([(bar_start_x, bar_y), (bar_start_x + 180, bar_y)], fill=self.fill, width=6) # White progress
-            draw.ellipse((bar_start_x + 170, bar_y - 8, bar_start_x + 190, bar_y + 8), fill=self.fill) # Dot
-
-            # Duration
-            draw.text((bar_start_x, bar_y + 20), "0:00", font=self.font_small, fill=self.secondary_fill)
-            draw.text((1100, bar_y + 20), song.duration, font=self.font_small, fill=self.secondary_fill)
-
-            # 4. Controls (Centered below text)
-            self.draw_player_icons(draw, text_x + 100, 520)
-
-            # --- STEP 2: Laptop के अंदर फिट करना ---
+            bar_end_x = 1100
             
-            # चेक करें कि laptop.jpg मौजूद है या नहीं
-            if os.path.exists(self.laptop_bg_path):
-                laptop = Image.open(self.laptop_bg_path).convert("RGBA")
-                
-                # नोट: ये Co-ordinates आपको अपनी laptop photo के हिसाब से बदलने पड़ेंगे
-                # मान लीजिये लैपटॉप की फोटो 1920x1080 है और स्क्रीन एरिया (300, 100) पर शुरू होता है
-                # स्क्रीन को थोड़ा छोटा करके (जैसे 70%) लैपटॉप की स्क्रीन साइज में फिट करें
-                
-                # यहाँ हम मान रहे हैं कि आप एक ऐसी फोटो यूज़ करेंगे जिसमें स्क्रीन सीधी है
-                target_screen_width = 750  # आपकी लैपटॉप इमेज में स्क्रीन की चौड़ाई
-                target_screen_height = 422 # 16:9 ratio maintain
-                
-                # स्क्रीन को रिसाइज करें
-                screen_resized = screen.resize((target_screen_width, target_screen_height), Image.Resampling.LANCZOS)
-                
-                # स्क्रीन को लैपटॉप इमेज पर पेस्ट करें (Co-ordinates X, Y बदलें अपनी फोटो के हिसाब से)
-                # मान लीजिये लैपटॉप इमेज में स्क्रीन (585, 250) पिक्सेल पर शुरू होती है
-                screen_pos_x = 585 
-                screen_pos_y = 250
-                
-                # लैपटॉप पर स्क्रीन पेस्ट करें
-                laptop.paste(screen_resized, (screen_pos_x, screen_pos_y))
-                
-                # फाइनल इमेज सेव करें
-                laptop.save(output)
-            else:
-                # अगर laptop.jpg नहीं मिली तो सिर्फ स्क्रीन वाली इमेज भेज दें
-                print("Warning: laptop.jpg not found. Sending flat UI.")
-                screen.save(output)
+            # लाइन की पोजीशन फोटो के हिसाब से (Y=305 लगभग)
+            draw.line([(bar_start_x, 305), (bar_end_x, 305)], fill=(80, 80, 80), width=6) # डार्क ग्रे बेस
+            
+            # वाइट प्रोग्रेस (मान लो 30% गाना चला है दिखाने के लिए)
+            draw.line([(bar_start_x, 305), (bar_start_x + 150, 305)], fill=(255, 255, 255), width=6)
+            draw.ellipse((bar_start_x + 140, 297, bar_start_x + 160, 313), fill=(255, 255, 255)) # Dot
 
+            # ड्यूरेशन टेक्स्ट (बार के नीचे)
+            draw.text((bar_start_x, 330), "0:00", font=self.font_small, fill=self.text_color)
+            draw.text((bar_end_x - 50, 330), song.duration, font=self.font_small, fill=self.text_color)
+
+            # फाइल सेव करें
+            background.save(output)
+            
+            # टेम्परेरी फाइल डिलीट करें
             if os.path.exists(temp):
                 os.remove(temp)
                 
