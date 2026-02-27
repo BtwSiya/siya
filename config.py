@@ -30,7 +30,7 @@ class Config:
         self.VIDEO_PLAY: bool = getenv("VIDEO_PLAY", True)
         self.COOKIES_URL = [
             url for url in getenv("COOKIES_URL", "https://batbin.me/captors").split(" ")
-            if url and "batbin.me" in url"
+            if url and "batbin.me" in url
         ]
         self.DEFAULT_THUMB = "https://ar-hosting.pages.dev/1770755014036.jpg"
         self.PING_IMG = "https://ar-hosting.pages.dev/1770755014036.jpg"
